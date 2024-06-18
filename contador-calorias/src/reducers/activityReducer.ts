@@ -3,15 +3,22 @@ import { ActivityT } from "../types";
 export type ActivityActions =
   | { type: "save-activity"; payload: { newActivity: ActivityT } }
   | { type: "set-activeId"; payload: { id: ActivityT["id"] } }
-  | { type: "remove-activity"; payload: { id: ActivityT["id"] } };
+  | { type: "remove-activity"; payload: { id: ActivityT["id"] } }
+  | { type: "restart-app" };
 
 export type ActivityState = {
   activities: ActivityT[];
   activityId: ActivityT["id"];
 };
 
+const sessionStorageActivities = (): ActivityT[] => {
+  const activities = sessionStorage.getItem("activities");
+
+  return activities ? JSON.parse(activities) : [];
+};
+
 export const initialState: ActivityState = {
-  activities: [],
+  activities: sessionStorageActivities(),
   activityId: "",
 };
 
@@ -50,6 +57,13 @@ export const activityReducer = (
       activities: state.activities.filter(
         (stateActivity) => stateActivity.id !== action.payload.id
       ),
+      activityId: "",
+    };
+  }
+
+  if (action.type === "restart-app") {
+    return {
+      activities: [],
       activityId: "",
     };
   }
