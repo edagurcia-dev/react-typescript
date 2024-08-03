@@ -45,10 +45,6 @@ export const createFavoritesSlice: StateCreator<FavoritesSliceType> = (
       get().showNotification({ text: "Se agregó a favoritos", error: false });
     }
     sessionStorage.setItem("favorites", JSON.stringify(get().favorites));
-
-    setTimeout(() => {
-      get().closeNotification();
-    }, 2000);
   },
   loadFavoritesFromLocal: () => {
     const localFavs = sessionStorage.getItem("favorites");
@@ -67,6 +63,9 @@ export const createFavoritesSlice: StateCreator<FavoritesSliceType> = (
         show: true,
       },
     });
+    setTimeout(() => {
+      get().closeNotification();
+    }, 2500);
   },
   closeNotification: () => {
     set({
