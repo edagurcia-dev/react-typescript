@@ -1,43 +1,79 @@
 import { Response, Request } from "express";
+import asyncHandler from "express-async-handler";
 import Product from "../models/product.model";
 
-const createProduct = async (req: Request, res: Response) => {
-  try {
-    const product = await Product.create(req.body);
+const createProduct = asyncHandler(async (req: Request, res: Response) => {
+  const product = await Product.create(req.body);
+  res.status(201).json({ data: product });
+});
 
-    res.status(201).json({ data: product });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error al crear el producto" });
-  } finally {
+const getAllProducts = asyncHandler(async (req: Request, res: Response) => {
+  const products = await Product.findAll();
+  res.status(200).json({ data: products });
+});
+
+const getProductById = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const productId = parseInt(id);
+  const product = await Product.findByPk(productId);
+  if (!product) {
+    res.status(404).json({ error: "Producto no encontrado" });
     return;
   }
-};
+  res.status(200).json({ data: product });
+});
 
-const getAllProducts = async (req: Request, res: Response) => {
-  try {
-    const products = await Product.findAll();
-
-    res.status(200).json({ data: products });
-  } catch (error) {
-    console.log(error);
+const updateProductById = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const productId = parseInt(id);
+  const actualProduct = await Product.findByPk(productId);
+  if (!actualProduct) {
+    res.status(404).json({ error: "Producto no encontrado" });
+    return;
   }
-};
 
-const getProductById = async (req: Request, res: Response) => {
-  try {
+  await actualProduct.update(req.body);
+  const updatedProduct = await actualProduct.save();
+
+  res.status(201).json({ data: updatedProduct });
+});
+
+const updateProductAvailabilityById = asyncHandler(
+  async (req: Request, res: Response) => {
     const { id } = req.params;
-
-    const product = await Product.findByPk(id);
-
-    if (!product) {
-      return res.status(404).json({ error: "Producto no encontrado" });
+    const productId = parseInt(id);
+    const actualProduct = await Product.findByPk(productId);
+    if (!actualProduct) {
+      res.status(404).json({ error: "Producto no encontrado" });
+      return;
     }
 
-    res.status(200).json({ data: product });
-  } catch (error) {
-    console.log(error);
-  }
-};
+    actualProduct.availability = !actualProduct.dataValues.availability;
+    const updatedProduct = await actualProduct.save();
 
-export { createProduct, getAllProducts, getProductById };
+    res.status(201).json({ data: updatedProduct });
+  }
+);
+
+const deleteProductById = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const productId = parseInt(id);
+  const product = await Product.findByPk(productId);
+  if (!product) {
+    res.status(404).json({ error: "Producto no encontrado" });
+    return;
+  }
+
+  await product.destroy();
+
+  res.status(202).json({ data: "Producto eliminado" });
+});
+
+export {
+  createProduct,
+  getAllProducts,
+  getProductById,
+  updateProductById,
+  updateProductAvailabilityById,
+  deleteProductById,
+};
